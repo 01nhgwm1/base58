@@ -124,14 +124,15 @@ def b58decode_int(
 
     digits = v.translate(table)
     base = len(alphabet)
-    base3 = base * base * base
-    head = len(digits) % 3
+    base5 = base ** 5
+    head = len(digits) % 5
     decimal = 0
     for d in digits[:head]:
         decimal = decimal * base + d
     it = iter(digits[head:])
-    for a, b, c in zip(it, it, it):
-        decimal = decimal * base3 + (a * base + b) * base + c
+    for a, b, c, d, e in zip(it, it, it, it, it):
+        decimal = decimal * base5 + (
+            (((a * base + b) * base + c) * base + d) * base + e)
     return decimal
 
 
