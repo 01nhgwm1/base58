@@ -40,12 +40,13 @@ def b58encode_int(
     """
     if not i and default_one:
         return alphabet[0:1]
-    string = b""
+    string = bytearray()
     base = len(alphabet)
     while i:
         i, idx = divmod(i, base)
-        string = alphabet[idx:idx+1] + string
-    return string
+        string.append(alphabet[idx])
+    string.reverse()
+    return bytes(string)
 
 
 def b58encode(
