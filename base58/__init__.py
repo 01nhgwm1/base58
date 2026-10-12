@@ -38,15 +38,26 @@ def b58encode_int(
     """
     Encode an integer using Base58
     """
-    if not i and default_one:
-        return alphabet[0:1]
-    string = bytearray()
+    if not i:
+        return alphabet[0:1] if default_one else b''
+    # Emit two digits per division using a table of all digit pairs
+    pairs = _get_base58_encode_pairs(alphabet)
     base = len(alphabet)
+    pair_base = base * base
+    string = []
     while i:
-        i, idx = divmod(i, base)
-        string.append(alphabet[idx])
+        i, idx = divmod(i, pair_base)
+        string.append(pairs[idx])
+    if idx < base:
+        # the most significant pair has a leading zero digit
+        string[-1] = string[-1][1:]
     string.reverse()
-    return bytes(string)
+    return b''.join(string)
+
+
+@lru_cache()
+def _get_base58_encode_pairs(alphabet: bytes) -> list:
+    return [bytes((a, b)) for a in alphabet for b in alphabet]
 
 
 def b58encode(
