@@ -32,6 +32,12 @@ def scrub_input(v: Union[str, bytes]) -> bytes:
     return v
 
 
+@lru_cache()
+def _get_base58_encode_pairs(alphabet: bytes) -> list:
+    return [alphabet[a:a+1] + alphabet[b:b+1]
+            for a in range(len(alphabet)) for b in range(len(alphabet))]
+
+
 def b58encode_int(
     i: int, default_one: bool = True, alphabet: bytes = BITCOIN_ALPHABET
 ) -> bytes:
@@ -40,12 +46,22 @@ def b58encode_int(
     """
     if not i and default_one:
         return alphabet[0:1]
-    string = b""
     base = len(alphabet)
+    base2 = base * base
+    base4 = base2 * base2
+    pairs = _get_base58_encode_pairs(alphabet)
+    parts = []
+    while i >= base4:
+        i, rem = divmod(i, base4)
+        hi, lo = divmod(rem, base2)
+        parts.append(pairs[lo])
+        parts.append(pairs[hi])
+    string = b""
     while i:
         i, idx = divmod(i, base)
         string = alphabet[idx:idx+1] + string
-    return string
+    parts.reverse()
+    return string + b"".join(parts)
 
 
 def b58encode(
